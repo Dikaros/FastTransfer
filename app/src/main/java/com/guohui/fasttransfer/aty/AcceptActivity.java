@@ -312,6 +312,7 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
                     });
                     break;
                 case PROGRESS_SHOW:
+                    dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
                     dialog.show();
                     break;
                 case PROGRESS_DISMISS:
@@ -320,13 +321,13 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
                 case PROGRESS_ON_PROGRESS:
                     TransProgressMsg m = (TransProgressMsg) msg.obj;
                     if (isSender){
-                        dialog.setTitle("正在发送第"+m.getCurrentCount()+"个文件,共"+m.getTotalCount()+"个");
+                        dialog.setTitle("发送文件"+m.getProgress());
 
                     }else {
-                        dialog.setTitle("正在接收第"+m.getCurrentCount()+"个文件,共"+m.getTotalCount()+"个");
+                        dialog.setTitle("接收文件"+m.getProgress());
 
                     }
-                    dialog.setMessage("已完成"+m.getProgress()+"%");
+                    dialog.setMessage("正在接收第"+m.getCurrentCount()+"个文件,共"+m.getTotalCount()+"个");
                     dialog.setProgress(m.getProgress());
                     break;
             }
@@ -381,6 +382,7 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
         TransProgressMsg transProgressMsg = new TransProgressMsg(progress);
         Message m  = new Message();
         m.what = 4;
+        m.obj = transProgressMsg;
         handler.sendMessage(m);
 
     }

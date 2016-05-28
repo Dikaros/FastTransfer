@@ -26,4 +26,6 @@ dependencies {
     compile files('libs/slidingmenu.jar')
     compile 'de.hdodenhof:circleimageview:2.0.0'
     compile 'com.squareup.okhttp:okhttp:2.4.0'
+    compile 'com.koushikdutta.async:androidasync:2.+'
+
 }
