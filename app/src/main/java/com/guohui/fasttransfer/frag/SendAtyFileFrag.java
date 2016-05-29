@@ -1,17 +1,14 @@
 package com.guohui.fasttransfer.frag;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.StatFs;
 import android.support.v4.app.Fragment;
+import android.text.format.Formatter;
 import android.util.Log;
-import android.view.ActionMode;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListView;
@@ -19,9 +16,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.guohui.fasttransfer.R;
-import com.guohui.fasttransfer.adapter.SendAtyFileFragRvAdapter;
+import com.guohui.fasttransfer.adapter.SendAtyFileFragAdapter;
 import com.guohui.fasttransfer.aty.SendActivity;
-import com.guohui.fasttransfer.utils.FileUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -37,7 +33,7 @@ public class SendAtyFileFrag extends Fragment {
     //文件集合
     public ArrayList<File> files;
     //文件适配器
-    public SendAtyFileFragRvAdapter sendAtyFileFragRvAdapter;
+    public SendAtyFileFragAdapter sendAtyFileFragRvAdapter;
     //当前路径
     public String currnetPath;
 
@@ -73,11 +69,37 @@ public class SendAtyFileFrag extends Fragment {
 
 
     /**
+     * 获得SD卡总大小
+     *
+     * @return
+     */
+    private String getSDTotalSize() {
+        File path = Environment.getExternalStorageDirectory();
+        StatFs stat = new StatFs(path.getPath());
+        long blockSize = stat.getBlockSize();
+        long totalBlocks = stat.getBlockCount();
+        return Formatter.formatFileSize(getContext(), blockSize * totalBlocks);
+    }
+
+    /**
+     * 获得sd卡剩余容量，即可用大小
+     *
+     * @return
+     */
+    private String getSDAvailableSize() {
+        File path = Environment.getExternalStorageDirectory();
+        StatFs stat = new StatFs(path.getPath());
+        long blockSize = stat.getBlockSize();
+        long availableBlocks = stat.getAvailableBlocks();
+        return Formatter.formatFileSize(getContext(), blockSize * availableBlocks);
+    }
+
+    /**
      * 初始化Views
      */
     private void initViews(View v) {
         sdrongliang = (TextView) v.findViewById(R.id.sdrongliang);
-        sdrongliang.setText(String.valueOf(alloflength / 1024 / 1024) + "GB");
+        sdrongliang.setText(getSDAvailableSize() + "/" + getSDTotalSize());
         filelv = (ListView) v.findViewById(R.id.sendfrag_file_lv);
         tvPath = (TextView) v.findViewById(R.id.sendfrag_file_tvPath);
         tvPath.setText(currnetPath);
@@ -101,11 +123,7 @@ public class SendAtyFileFrag extends Fragment {
                     tvPath.setText(currnetPath);
                     lastPostion.push(filelv.getFirstVisiblePosition());
                 } else {
-                    //如果是文件,使用意图过滤器启动相应的程序
                     try {
-                      /*  Intent intent = new Intent(MainActivity.this, HexActivity.class);
-                        intent.putExtra("path", file.getAbsolutePath());
-                        startActivity(intent);*/
                         if (selectedFileMap.containsKey(position)) {
                             if (selectedFileMap.get(position)) {
                                 SendActivity.instance.removeFromFiles(file.getAbsolutePath());
@@ -129,7 +147,7 @@ public class SendAtyFileFrag extends Fragment {
         });
     }
 
-    HashMap<Integer, Boolean> selectedFileMap = new HashMap<>();
+  private   HashMap<Integer, Boolean> selectedFileMap = new HashMap<>();
 
 
     /**
@@ -145,7 +163,7 @@ public class SendAtyFileFrag extends Fragment {
      * 初始化adapter
      */
     private void initAdapter() {
-        sendAtyFileFragRvAdapter = new SendAtyFileFragRvAdapter(getContext(), files);
+        sendAtyFileFragRvAdapter = new SendAtyFileFragAdapter(getContext(), files);
     }
 
     /**
@@ -171,8 +189,8 @@ public class SendAtyFileFrag extends Fragment {
      * SDCARD是否存
      */
     public static boolean externalMemoryAvailable() {
-        return android.os.Environment.getExternalStorageState().equals(
-                android.os.Environment.MEDIA_MOUNTED);
+        return Environment.getExternalStorageState().equals(
+                Environment.MEDIA_MOUNTED);
     }
 
 

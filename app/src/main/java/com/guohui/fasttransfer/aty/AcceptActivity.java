@@ -28,6 +28,7 @@ import com.guohui.fasttransfer.SocketServerService;
 import com.guohui.fasttransfer.WiFiDirectBroadcastReceiver;
 import com.guohui.fasttransfer.asynet.AsyNet;
 import com.guohui.fasttransfer.base.FileMessageList;
+import com.guohui.fasttransfer.base.FileMsg;
 import com.guohui.fasttransfer.socket.FileTransferAsyncTask;
 import com.guohui.fasttransfer.utils.AlertUtil;
 
@@ -45,7 +46,6 @@ import java.util.logging.Handler;
  * Created by nangua on 2016/5/12.
  */
 public class AcceptActivity extends Activity implements AsyNet.OnNetStateChangedListener {
-    ImageView xuanzhuan;
     ArrayList<CharSequence> fileList;
 
     boolean isSender = false;
@@ -94,7 +94,7 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
         initView();
         dialog = new ProgressDialog(this);
 
-
+        mManager.removeGroup(mChannel,null);
         //搜索周边设备
         mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
             @Override
@@ -136,6 +136,8 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
         }.start();
     }
 
+    static List<FileMsg> receiveFileMsgs;
+    static List<FileMsg> acceptFileMsgs;
     /**
      * 连接上了服务器
      *
@@ -152,26 +154,29 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
             }
             transferAsyncTask.setSendFileList(files);
         }
-        transferAsyncTask.setOnReceivedListener(new FileTransferAsyncTask.OnReceivedListener() {
+        transferAsyncTask.setOnReceivedListener(
+                new FileTransferAsyncTask.OnReceivedListener() {
 
-            @Override
-            public boolean onReceivedFileMessage(FileMessageList msgs) {
+                    @Override
+                    public boolean onReceivedFileMessage(FileMessageList msgs) {
+                        receiveFileMsgs = msgs.getMsgs();
 
-                Message message = new Message();
-                message.what = 1;
-                message.obj = msgs;
-                handler.sendMessage(message);
 
-                while (!flag){
-                    try {
-                        Thread.sleep(200);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                        Message message = new Message();
+                        message.what = 1;
+                        message.obj = msgs;
+                        handler.sendMessage(message);
+
+                        while (!flag){
+                            try {
+                                Thread.sleep(200);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        return result;
                     }
-                }
-                return result;
-            }
-        });
+                });
         transferAsyncTask.setOnNetStateChangedListener(AcceptActivity.this);
         transferAsyncTask.execute(isSender);
     }
@@ -198,13 +203,6 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
             });
             diviceNear[i].setVisibility(View.GONE);
         }
-        xuanzhuan = (ImageView) findViewById(R.id.xuanzhuan);
-        final RotateAnimation animation = new RotateAnimation(0f, 360f, 0,
-                0, 0, 0);
-        animation.setDuration(20000);//设置动画持续时间
-        animation.setRepeatCount(100);
-        xuanzhuan.setAnimation(animation);
-        animation.startNow();
     }
 
 
@@ -219,56 +217,56 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
         registerReceiver(mReceiver, mIntentFilter);
         //如果处于前台状态，设置socket连接时的监听器
         SocketServerService.manager.setOnClientConnectedListener(new SocketServerService.OnClientConnectedListener() {
-                                                 @Override
-                                                 public void OnClientConnected(Socket socket) {
-                                                     //如果是接收方
-                                                     if (!isSender) {
-                                                         try {
-                                                             //启动接收器
-                                                             FileTransferAsyncTask serverTask= SocketServerService.manager.reveiceFile(AcceptActivity.this, socket);
-                                                             serverTask.setOnReceivedListener(new FileTransferAsyncTask.OnReceivedListener() {
+                                                                     @Override
+                                                                     public void OnClientConnected(Socket socket) {
+                                                                         //如果是接收方
+                                                                         if (!isSender) {
+                                                                             try {
+                                                                                 //启动接收器
+                                                                                 FileTransferAsyncTask serverTask= SocketServerService.manager.reveiceFile(AcceptActivity.this, socket);
+                                                                                 serverTask.setOnReceivedListener(new FileTransferAsyncTask.OnReceivedListener() {
 
-                                                                 @Override
-                                                                 public boolean onReceivedFileMessage(FileMessageList msgs) {
+                                                                                     @Override
+                                                                                     public boolean onReceivedFileMessage(FileMessageList msgs) {
 
-                                                                     Message message = new Message();
-                                                                     message.what = 1;
-                                                                     message.obj = msgs;
-                                                                     handler.sendMessage(message);
+                                                                                         Message message = new Message();
+                                                                                         message.what = 1;
+                                                                                         message.obj = msgs;
+                                                                                         handler.sendMessage(message);
 
-                                                                     while (!flag){
-                                                                         try {
-                                                                             Thread.sleep(200);
-                                                                         } catch (InterruptedException e) {
-                                                                             e.printStackTrace();
+                                                                                         while (!flag){
+                                                                                             try {
+                                                                                                 Thread.sleep(200);
+                                                                                             } catch (InterruptedException e) {
+                                                                                                 e.printStackTrace();
+                                                                                             }
+                                                                                         }
+                                                                                         return result;
+                                                                                     }
+                                                                                 });
+                                                                                 serverTask.setOnNetStateChangedListener(AcceptActivity.this);
+                                                                                 serverTask.execute(false);
+
+                                                                             } catch (Exception e) {
+                                                                                 e.printStackTrace();
+                                                                             }
+                                                                         } else {
+                                                                             try {
+                                                                                 //发送文件
+                                                                                 List<File> files = new ArrayList<File>();
+                                                                                 for (CharSequence path : fileList) {
+                                                                                     files.add(new File((String) path));
+                                                                                 }
+                                                                                 FileTransferAsyncTask task = SocketServerService.manager.sendFile(AcceptActivity.this, socket, files);
+                                                                                 task.setOnNetStateChangedListener(AcceptActivity.this);
+                                                                                 task.execute(files, isSender);
+                                                                             } catch (Exception e) {
+                                                                                 e.printStackTrace();
+                                                                             }
                                                                          }
                                                                      }
-                                                                     return result;
+
                                                                  }
-                                                             });
-                                                             serverTask.setOnNetStateChangedListener(AcceptActivity.this);
-                                                             serverTask.execute(false);
-
-                                                         } catch (Exception e) {
-                                                             e.printStackTrace();
-                                                         }
-                                                     } else {
-                                                         try {
-                                                             //发送文件
-                                                             List<File> files = new ArrayList<File>();
-                                                             for (CharSequence path : fileList) {
-                                                                 files.add(new File((String) path));
-                                                             }
-                                                             FileTransferAsyncTask task = SocketServerService.manager.sendFile(AcceptActivity.this, socket, files);
-                                                             task.setOnNetStateChangedListener(AcceptActivity.this);
-                                                             task.execute(files, isSender);
-                                                         } catch (Exception e) {
-                                                             e.printStackTrace();
-                                                         }
-                                                     }
-                                                 }
-
-                                             }
 
         );
     }
@@ -312,22 +310,52 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
                     });
                     break;
                 case PROGRESS_SHOW:
-                    dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
                     dialog.show();
                     break;
                 case PROGRESS_DISMISS:
+                    if (!isSender) {
+                        //这里把receiveFileMsgs存到数据库里去
+
+
+
+
+
+
+
+
+
+
+                    } else {
+                        for (int i = 0;i<fileList.size();i++){
+                            File tempfile = new File((String) fileList.get(i));
+                            String filename = tempfile.getName();
+                            //这里把文件名存到数据库里去
+
+
+
+
+
+
+
+
+
+
+
+
+                        }
+                    }
                     dialog.dismiss();
                     break;
                 case PROGRESS_ON_PROGRESS:
                     TransProgressMsg m = (TransProgressMsg) msg.obj;
                     if (isSender){
-                        dialog.setTitle("发送文件"+m.getProgress());
+                        dialog.setTitle("正在发送第"+m.getCurrentCount()+"个文件,共"+m.getTotalCount()+"个");
 
                     }else {
-                        dialog.setTitle("接收文件"+m.getProgress());
+                        dialog.setTitle("正在接收第"+m.getCurrentCount()+"个文件,共"+m.getTotalCount()+"个");
 
                     }
-                    dialog.setMessage("正在接收第"+m.getCurrentCount()+"个文件,共"+m.getTotalCount()+"个");
+                    dialog.setMessage("已完成"+m.getProgress()+"%");
                     dialog.setProgress(m.getProgress());
                     break;
             }
@@ -382,7 +410,6 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
         TransProgressMsg transProgressMsg = new TransProgressMsg(progress);
         Message m  = new Message();
         m.what = 4;
-        m.obj = transProgressMsg;
         handler.sendMessage(m);
 
     }

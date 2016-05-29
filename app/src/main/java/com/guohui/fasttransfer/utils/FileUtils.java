@@ -108,7 +108,7 @@ public class FileUtils {
     }
 
 
-    private static String longToFileSize(long result) {
+    public static String longToFileSize(long result) {
         long gb = 2 << 29;
         long mb = 2 << 19;
         long kb = 2 << 9;

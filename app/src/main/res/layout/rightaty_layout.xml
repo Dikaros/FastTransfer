@@ -62,16 +62,15 @@
             android:layout_weight="1"
             android:button="@null"  android:textColor="@drawable/send_radiobutton_textcolor"
             android:gravity="center"
-            android:text="历史" />
+            android:text="发送的文件" />
 
     </RadioGroup>
 
-    <ImageView
+    <com.guohui.fasttransfer.view.HorizontalScrollCursor
         android:id="@+id/right_cursor"
         android:layout_width="fill_parent"
         android:layout_height="3dp"
-        android:scaleType="matrix"
-        android:src="@drawable/cursor" />
+         />
 
     <FrameLayout
         android:layout_width="match_parent"
