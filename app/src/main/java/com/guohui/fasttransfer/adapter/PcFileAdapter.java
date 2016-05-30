@@ -59,7 +59,7 @@ public class PcFileAdapter extends BaseAdapter {
         holder.tvName.setText(file.getName());
         holder.tvType.setText(file.getType());
         holder.tvProgress.setText(file.getProgress());
-        holder.tvSize.setText(FileUtils.longToFileSize(Long.parseLong(file.getSize())));
+        holder.tvSize.setText(FileUtils.longToFileSize(Long.parseLong(file.getLength())));
         return convertView;
     }
 
@@ -73,5 +73,13 @@ public class PcFileAdapter extends BaseAdapter {
             tvType = (TextView) v.findViewById(R.id.tv_item_file_type);
             tvProgress.setText("准备传输");
         }
+    }
+
+    public void updateFile(WebFile file,int index){
+        fileMsgs.get(index).setProgress(file.getProgress());
+        fileMsgs.get(index).setSize(file.getSize());
+        fileMsgs.get(index).setLength(file.getLength());
+        fileMsgs.get(index).setReaded(file.getReaded());
+
     }
 }

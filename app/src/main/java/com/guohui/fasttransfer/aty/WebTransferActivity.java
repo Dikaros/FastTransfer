@@ -18,16 +18,23 @@ import android.widget.TextView;
 import com.google.gson.Gson;
 import com.guohui.fasttransfer.R;
 import com.guohui.fasttransfer.SimpleHttpService;
+import com.guohui.fasttransfer.adapter.PcFileAdapter;
 import com.guohui.fasttransfer.base.WebFile;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class WebTransferActivity extends AppCompatActivity {
 
     ListView lvFile;
     TextView tvIp;
+
+    List<WebFile> files;
+    PcFileAdapter adapter;
 
     SimpleHttpService.HttpBinder binder;
 
@@ -51,6 +58,7 @@ public class WebTransferActivity extends AppCompatActivity {
         filter.addAction(SimpleHttpService.HTTP_REQUEST_RECEIVED);
         filter.addAction(SimpleHttpService.HTTP_SERVER_START);
         filter.addAction(SimpleHttpService.ANDROID_WEBSOCKET_FILE_TRANSFER);
+        filter.addAction(SimpleHttpService.ON_FILE_TRANSFERING);
         registerReceiver(receiver, filter);
         super.onResume();
     }
@@ -79,6 +87,9 @@ public class WebTransferActivity extends AppCompatActivity {
     private void initViews() {
         lvFile = (ListView) findViewById(R.id.lv_pc_accepter);
         tvIp = (TextView) findViewById(R.id.tv_ip);
+        files = new ArrayList<>();
+        adapter = new PcFileAdapter(this,files);
+        lvFile.setAdapter(adapter);
     }
 
     @Override
@@ -91,7 +102,7 @@ public class WebTransferActivity extends AppCompatActivity {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.e("receiver",intent.getAction());
+//            Log.e("receiver",intent.getAction());
             switch (intent.getAction()){
                 case SimpleHttpService.HTTP_REQUEST_RECEIVED:
                     break;
@@ -115,6 +126,17 @@ public class WebTransferActivity extends AppCompatActivity {
                             e.printStackTrace();
                         }
                     }
+                    break;
+                case SimpleHttpService.ON_FILE_TRANSFERING:
+                    WebFile file = (WebFile) intent.getSerializableExtra(SimpleHttpService.ON_TRANSFERING_FILE);
+
+                    if (!files.contains(file)){
+                        files.add(file);
+                    }else {
+                        adapter.updateFile(file,0);
+                    }
+                    adapter.notifyDataSetChanged();
+
                     break;
             }
         }

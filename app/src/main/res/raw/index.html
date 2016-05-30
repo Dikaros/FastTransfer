@@ -43,7 +43,7 @@
         var sendForm;
         var textConnect;
         var textDescription;
-
+        var currentIndex = 0;
         var fileArray = new Array();
         function init() {
             output = document.getElementById("output");
@@ -117,35 +117,57 @@
         }
 
         function onClose(evt) {
-//            writeToScreen("DISCONNECTED");
             ws = null;
         }
         function onMessage(evt) {
-//            writeToScreen("<span style='color:blue;'>RESPONSE:" + evt.data
-//                    + "</span>");
-            alert(evt);
-            if (sending && evt == 200) {
+            if (sending) {
                 var file = fileArray[0];
                 readFile(file, 0);
             }
         }
 
+        var currentFile;
+        var currentReaded;
+
         //        读取文件
         function readFile(file, index) {
+               currentFile = file;
             //找到所属的progress
             var progress = document.getElementsByClassName("progress")[index];
             //每次读取8K的内容
-            var block = 8 * 1024;
+            var block = 512 * 1024;
             //当前已读
             var fileLoaded = 0;
             //文件大小
             var fileSize = file.size;
             var reader = new FileReader();
             // 只需监听onload事件
-            reader.onload = loadHandler2;
+            reader.onload = function(e){
+             //发送
+             //   alert("发送"+this.result);
+              //  ws.send(this.result);
+              doSend(this.result);
+                fileLoaded += e.total;
+                var percent = fileLoaded / fileSize;
+                if (fileLoaded < fileSize) {
+                    // 继续读取下一块
+                    readBlob2();
+                } else {
+                    // 结束
+                    percent = 1;
+                }
+
+               percent = Math.ceil(percent * 100) + '%';
+                if(percent=="100%"){
+                    percent+="正在传输...";
+               }
+               progress.innerHTML = percent;
+
+            };
             readBlob2();
             //读取一块
             function readBlob2() {
+
                 var blob;
                 if (file.webkitSlice) {
                     blob = file.webkitSlice(fileLoaded, fileLoaded + block + 1);
@@ -157,23 +179,12 @@
                     alert('不支持分段读取！');
                     return false;
                 }
-                reader.readAsBinaryString(blob);
+              //  alert("读取数据blob"+blob);
+                reader.readAsArrayBuffer(blob);
+
+               // ws.send(reader)
             }
 
-            // 每个blob读取完毕时调用
-            function loadHandler2(e) {
-                fileLoaded += e.total;
-                var percent = fileLoaded / fileSize;
-                if (percent < 1) {
-                    // 继续读取下一块
-                    readBlob2();
-                } else {
-                    // 结束
-                    percent = 1;
-                }
-                percent = Math.ceil(percent * 100) + '%';
-                progress.innerHTML = percent;
-            }
         }
 
         function onError(evt) {
@@ -181,7 +192,6 @@
         }
         function doSend(evt) {
             ws.send(evt);
-//            writeToScreen("<span style='color:green;'>SEND:" + evt + "</span>");
 
         }
         function writeToScreen(evt) {
@@ -200,7 +210,6 @@
                 var f = files[i];
                 writeToScreen('<td align="center" style="width: 25%" class="file_msg">' + f.name + '</td><td align="center" class="file_msg">'
                         + (f.type || "n/a") + '</td><td align="center" class="file_msg">' + byteFormater(f.size) + '</td><td  align="center" style="color: #0477f4" class="file_msg progress">等待传输</td>')
-                //添加文件
                 fileArray.push(f);
             }
         }
@@ -212,7 +221,7 @@
             if (fileArray.length != 0) {
                 for (var i = 0; i < fileArray.length; i++) {
                     var f = fileArray[i];
-                    message = message + '{"name":"' + f.name + '","length":"' + f.size + '","type:"' + f.type + '"}';
+                    message = message + '{"name":"' + f.name + '","length":"' + f.size + '","type":"' + f.type + '"}';
                     if (i != fileArray.length - 1) {
                         message = message + ',';
                     }
@@ -240,6 +249,8 @@
             }
         }
 
+
+
     </script>
 </head>
 
@@ -248,7 +259,7 @@
 <div id="divMain" align="center">
     <h2 style="padding-top: 50px;color: white">果汇快传</h2>
 
-    <h3  style="color: white"><p id="description"></p></h3>
+    <h3 style="color: white"><p id="description"></p></h3>
 </div>
 
 <div align="center">
@@ -270,7 +281,7 @@
                                 <td align="center" class="file_msg">文件名</td>
                                 <td align="center" class="file_msg">类型</td>
                                 <td align="center" class="file_msg">文件大小</td>
-                                <td align="center" class="file_msg">传输进度</td>
+                                <td align="center" class="file_msg">读取进度</td>
                             </tr>
                         </table>
 

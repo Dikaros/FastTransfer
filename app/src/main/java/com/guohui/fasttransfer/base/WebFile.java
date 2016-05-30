@@ -1,12 +1,33 @@
 package com.guohui.fasttransfer.base;
 
+import java.io.Serializable;
+
 /**
  * Created by Dikaros on 2016/5/29.
  */
-public class WebFile {
+public class WebFile implements Serializable{
     String name;
     String type;
-    String size;
+    String length;
+
+    long size;
+    long readed;
+
+    public long getSize() {
+        return size;
+    }
+
+    public void setSize(long size) {
+        this.size = size;
+    }
+
+    public long getReaded() {
+        return readed;
+    }
+
+    public void setReaded(long readed) {
+        this.readed = readed;
+    }
 
     public String getProgress() {
         return progress;
@@ -34,11 +55,22 @@ public class WebFile {
         this.type = type;
     }
 
-    public String getSize() {
-        return size;
+    public String getLength() {
+        return length;
     }
 
-    public void setSize(String size) {
-        this.size = size;
+    public void setLength(String length) {
+        this.length = length;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+
+        return ((WebFile)o).getName().equals(name);
+    }
+
+    @Override
+    public int hashCode() {
+        return name.hashCode();
     }
 }

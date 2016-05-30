@@ -67,6 +67,8 @@ public class Config {
         return file;
     }
 
+
+
     public static InetAddress CONNECTED_OWNER_IP = null;
 
     public static P2pRole CURRENT_ROLE = P2pRole.NONE;
