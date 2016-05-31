@@ -1,6 +1,7 @@
 package com.guohui.fasttransfer.asynet;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.squareup.okhttp.Call;
 import com.squareup.okhttp.FormEncodingBuilder;
@@ -83,10 +84,10 @@ public abstract class AsyNet<T> extends AsyncTask<String, Integer, T> {
     @Override
     protected void onProgressUpdate(Integer... values) {
         if (onNetStateChangedListener != null) {
-            if (values.length > 1) {
                 onNetStateChangedListener.onProgress(values);
-            }
         }
+        Log.d("doInbackground", "收到进度"+values);
+
     }
 
 

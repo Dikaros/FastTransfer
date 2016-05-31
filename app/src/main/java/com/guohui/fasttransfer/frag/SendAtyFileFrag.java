@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,6 +21,7 @@ import com.guohui.fasttransfer.adapter.SendAtyFileFragAdapter;
 import com.guohui.fasttransfer.aty.SendActivity;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Stack;
@@ -52,6 +54,8 @@ public class SendAtyFileFrag extends Fragment {
     public TextView sdrongliang;
     long alloflength = 0;
 
+    private ProgressBar sdrongliang_progressbar;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.sendfrag_file_layout, container, false);
@@ -78,8 +82,12 @@ public class SendAtyFileFrag extends Fragment {
         StatFs stat = new StatFs(path.getPath());
         long blockSize = stat.getBlockSize();
         long totalBlocks = stat.getBlockCount();
+        sdtotalsize = blockSize * totalBlocks;
+        Log.d("whale","sdtotalsize" + String.valueOf(sdtotalsize));
         return Formatter.formatFileSize(getContext(), blockSize * totalBlocks);
     }
+
+    static long sdtotalsize;
 
     /**
      * 获得sd卡剩余容量，即可用大小
@@ -91,15 +99,24 @@ public class SendAtyFileFrag extends Fragment {
         StatFs stat = new StatFs(path.getPath());
         long blockSize = stat.getBlockSize();
         long availableBlocks = stat.getAvailableBlocks();
+        sdavailabsize = blockSize * availableBlocks;
+        Log.d("whale","sdavailabsize" + String.valueOf(sdavailabsize));
         return Formatter.formatFileSize(getContext(), blockSize * availableBlocks);
     }
+    static long sdavailabsize;
 
     /**
      * 初始化Views
      */
     private void initViews(View v) {
+        //得到内存容量
         sdrongliang = (TextView) v.findViewById(R.id.sdrongliang);
         sdrongliang.setText(getSDAvailableSize() + "/" + getSDTotalSize());
+        sdrongliang_progressbar = (ProgressBar) v.findViewById(R.id.sdrongliang_progressbar);
+        sdrongliang_progressbar.setMax(100);
+        double result = (double)sdavailabsize/(double)sdtotalsize;
+        Log.d("whale", "result" + String.valueOf(result));
+        sdrongliang_progressbar.setProgress((int) (result*100));
         filelv = (ListView) v.findViewById(R.id.sendfrag_file_lv);
         tvPath = (TextView) v.findViewById(R.id.sendfrag_file_tvPath);
         tvPath.setText(currnetPath);
@@ -150,14 +167,6 @@ public class SendAtyFileFrag extends Fragment {
   private   HashMap<Integer, Boolean> selectedFileMap = new HashMap<>();
 
 
-    /**
-     * 按下返回键
-     * 返回键按下后判断当前目录是否是跟目录,如果不是,则返回上一个目录
-     */
-    public void sendonBackPressed() {
-        //当前路径不是根路径
-
-    }
 
     /**
      * 初始化adapter

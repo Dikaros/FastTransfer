@@ -143,21 +143,24 @@ public class FileTransferAsyncTask extends AsyNet<Object> {
                                 os.write(buff, 0, len);
                                 sended += len;
                                 //发送进度信息，以百分比的形式,第一个参数为百分比，第二个是文件位置
-                                publishProgress(new Integer[]{(int) (sended * 100 / file.length()), i,sendFileList.size()});
+                                publishProgress((int) (sended * 100 / file.length()), i,sendFileList.size());
+//                                Log.d("doinBackground","发送进度信息");
                             }
 
                             os.flush();
                         }
 
-                        AlertUtil.toastMess(context, "发送完成");
+//                        AlertUtil.toastMess(context, "发送完成");
                         //发送文件传输完成帧
-                        os.write(SEND_COMPLETE);
-                        os.flush();
-                        //接收文件成功的回应
-                        int secondReply = is.read();
-                        if (secondReply == RECEIVE_COMPLETE) {
-                            AlertUtil.toastMess(context, "发送成功，已经收到对方确认");
-                        }
+//                        os.write(SEND_COMPLETE);
+//                        os.flush();
+//                        //接收文件成功的回应
+//                        int secondReply = is.read();
+//                        if (secondReply == RECEIVE_COMPLETE) {
+//          //                  AlertUtil.toastMess(context, "发送成功，已经收到对方确认");
+//                            Log.d("doInbackground", "发送成功，已经收到对方确认");
+//
+//                        }
 
                         //关闭文件输入流
                         fis.close();
@@ -218,21 +221,25 @@ public class FileTransferAsyncTask extends AsyNet<Object> {
                                 fos.write(buff, 0, len);
                                 received += len;
                                 //发送进度
-                                publishProgress(new Integer[]{(int) (received * 100 / msg.getLength()), i,msgs.getCount()});
+                                publishProgress((int) (received * 100 / msg.getLength()), i,msgs.getCount());
+//                                Log.d("doinBackground","发送进度信息");
                             }
                             fos.flush();
                         }
 
+
+
+
                         Log.d("doInbackground", "文件接收完成");
 
 
-                        int receiveFinish = is.read();
-                        if (receiveFinish == SEND_COMPLETE) {
-                            AlertUtil.toastMess(context, "对方发送完成");
-                        }
+//                        int receiveFinish = is.read();
+//                        if (receiveFinish == SEND_COMPLETE) {
+//                         //   AlertUtil.toastMess(context, "对方发送完成");
+//                        }
                         //接收完成
-                        os.write(RECEIVE_COMPLETE);
-                        os.flush();
+//                        os.write(RECEIVE_COMPLETE);
+//                        os.flush();
 
                         fos.close();
                         os.close();
@@ -310,8 +317,4 @@ public class FileTransferAsyncTask extends AsyNet<Object> {
         super.execute();
     }
 
-    @Override
-    protected void onProgressUpdate(Integer... values) {
-
-    }
 }

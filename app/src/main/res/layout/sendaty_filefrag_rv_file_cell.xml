@@ -63,6 +63,7 @@
         </LinearLayout>
 
         <ImageButton
+            android:visibility="gone"
             android:id="@+id/sendaty_filefrag_rv_file_cell_more"
             android:layout_gravity="center_vertical"
             android:layout_width="wrap_content"

@@ -9,8 +9,14 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import com.guohui.fasttransfer.R;
+import com.guohui.fasttransfer.utils.MediaUtil;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class MainActivity extends Activity {
     public static MainActivity mainActivity;
@@ -22,6 +28,9 @@ public class MainActivity extends Activity {
     Button acceptbtn;
 
     ImageButton man_toobal_rightbtn;
+    TextView main_pickturenum;
+    TextView main_videonum;
+    TextView main_musicnum;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,6 +49,19 @@ public class MainActivity extends Activity {
 
 
     private void initView() {
+        main_pickturenum = (TextView) findViewById(R.id.main_pickturenum);
+        main_videonum = (TextView) findViewById(R.id.main_videonum);
+        main_musicnum = (TextView) findViewById(R.id.main_musicnum);
+        ArrayList<File> templist;
+        templist = MediaUtil.getAllSongs(this);
+        main_musicnum.setText(templist.size()+"首");
+        templist = MediaUtil.getAllVideos(this);
+        main_videonum.setText(templist.size()+"个");
+        templist = null;
+        ArrayList<HashMap<String,String>> temphashlist;
+        temphashlist = MediaUtil.getAllPictures(this);
+        main_pickturenum.setText(temphashlist.size()+"张");
+        temphashlist = null;
         //设置下滑箭头的帧动画
         downarrow = (ImageButton) findViewById(R.id.downarrow);
         downarrow.setImageResource(R.drawable.down_arrow_animation);

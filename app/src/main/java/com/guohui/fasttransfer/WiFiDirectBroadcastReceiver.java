@@ -71,7 +71,7 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
     }
 
 
-
+    public boolean connected = false;
 
     @Override
     public void onReceive(final Context context, Intent intent) {
@@ -130,8 +130,6 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                             //组长建立ServerSocket
                             isOwner = true;
                             Config.CURRENT_ROLE = Config.P2pRole.GROUP_OWNRR;
-
-
                         } else if (info.groupFormed&&!info.isGroupOwner) {
                             // 这里执行普通组员的任务
                             // 通常是创建一个客户端向组长的服务器发送请求
@@ -140,7 +138,10 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                             isOwner = false;
                             Config.CURRENT_ROLE = Config.P2pRole.GROUP_MEMBER;
                             //普通组员创建一个socket连接到主机
-                            mActivity.connectToOwner();
+                            if (!connected) {
+                                mActivity.connectToOwner();
+                                connected = true;
+                            }
                         }
                     }
                 });

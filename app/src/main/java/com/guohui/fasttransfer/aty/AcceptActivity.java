@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Message;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.RotateAnimation;
@@ -70,8 +71,8 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
     int[] ids = {R.id.device_0, R.id.device_1, R.id.device_2};
 
 
-
     ProgressDialog dialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -93,8 +94,12 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
 
         initView();
         dialog = new ProgressDialog(this);
+        dialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+        dialog.setCancelable(false);
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.setMax(100);
 
-        mManager.removeGroup(mChannel,null);
+        mManager.removeGroup(mChannel, null);
         //搜索周边设备
         mManager.discoverPeers(mChannel, new WifiP2pManager.ActionListener() {
             @Override
@@ -108,25 +113,34 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
             }
         });
 
+        Intent intent = new Intent(AcceptActivity.this, SocketServerService.class);
+        startService(intent);
+
     }
 
+    boolean stop = false;
+    boolean accepted = false;
 
     /**
      * 连接到owner
      */
     public void connectToOwner() {
+        Log.d("connect","执行了连接到Owner");
         new Thread() {
             boolean success = false;
 
             @Override
             public void run() {
-                while (!success) {
+                while (!success && !stop && !accepted) {
                     try {
                         sleep(3000);
-                        Socket clientSocket;
-                        clientSocket = new Socket(Config.CONNECTED_OWNER_IP, 8889);
+                        Log.e("ownerAddress", Config.CONNECTED_OWNER_IP.toString());
+                        Socket clientSocket = new Socket();
+                        clientSocket.bind(null);
+                        clientSocket.connect(new InetSocketAddress(Config.CONNECTED_OWNER_IP, 8889));
                         success = true;
                         serverConnected(clientSocket);
+                        break;
                     } catch (Exception e) {
                         e.printStackTrace();
                         success = false;
@@ -136,14 +150,17 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
         }.start();
     }
 
+
     static List<FileMsg> receiveFileMsgs;
     static List<FileMsg> acceptFileMsgs;
+
     /**
      * 连接上了服务器
      *
      * @param socket
      */
     private void serverConnected(Socket socket) {
+
         FileTransferAsyncTask transferAsyncTask = new FileTransferAsyncTask(this, socket, Config.CONNECTED_OWNER_IP);
         if (isSender) {
             //设置并发送文件
@@ -167,7 +184,7 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
                         message.obj = msgs;
                         handler.sendMessage(message);
 
-                        while (!flag){
+                        while (!flag) {
                             try {
                                 Thread.sleep(200);
                             } catch (InterruptedException e) {
@@ -223,7 +240,7 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
                                                                          if (!isSender) {
                                                                              try {
                                                                                  //启动接收器
-                                                                                 FileTransferAsyncTask serverTask= SocketServerService.manager.reveiceFile(AcceptActivity.this, socket);
+                                                                                 FileTransferAsyncTask serverTask = SocketServerService.manager.reveiceFile(AcceptActivity.this, socket);
                                                                                  serverTask.setOnReceivedListener(new FileTransferAsyncTask.OnReceivedListener() {
 
                                                                                      @Override
@@ -234,7 +251,7 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
                                                                                          message.obj = msgs;
                                                                                          handler.sendMessage(message);
 
-                                                                                         while (!flag){
+                                                                                         while (!flag) {
                                                                                              try {
                                                                                                  Thread.sleep(200);
                                                                                              } catch (InterruptedException e) {
@@ -260,6 +277,7 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
                                                                                  FileTransferAsyncTask task = SocketServerService.manager.sendFile(AcceptActivity.this, socket, files);
                                                                                  task.setOnNetStateChangedListener(AcceptActivity.this);
                                                                                  task.execute(files, isSender);
+                                                                                 Log.e("sender", "启动发送");
                                                                              } catch (Exception e) {
                                                                                  e.printStackTrace();
                                                                              }
@@ -275,6 +293,7 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
     @Override
     protected void onPause() {
         super.onPause();
+        stop = true;
         unregisterReceiver(mReceiver);
         SocketServerService.manager.setOnClientConnectedListener(null);
     }
@@ -287,11 +306,12 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
 
     }
 
-    android.os.Handler handler = new android.os.Handler(){
+    android.os.Handler handler = new android.os.Handler() {
         @Override
         public void handleMessage(Message msg) {
-            switch (msg.what){
+            switch (msg.what) {
                 case 1:
+                    accepted = true;
                     FileMessageList msgs = (FileMessageList) msg.obj;
                     AlertUtil.judgeAlertDialog(AcceptActivity.this, "接收提醒", msgs.getInfo(), new DialogInterface.OnClickListener() {
                         @Override
@@ -303,7 +323,7 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
                     }, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            result =false;
+                            result = false;
                             flag = true;
                             dialog.dismiss();
                         }
@@ -313,50 +333,29 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
                     dialog.show();
                     break;
                 case PROGRESS_DISMISS:
+                    mReceiver.connected = false;
                     if (!isSender) {
                         //这里把receiveFileMsgs存到数据库里去
 
-
-
-
-
-
-
-
-
-
                     } else {
-                        for (int i = 0;i<fileList.size();i++){
+                        for (int i = 0; i < fileList.size(); i++) {
                             File tempfile = new File((String) fileList.get(i));
                             String filename = tempfile.getName();
                             //这里把文件名存到数据库里去
-
-
-
-
-
-
-
-
-
-
-
-
                         }
                     }
                     dialog.dismiss();
                     break;
                 case PROGRESS_ON_PROGRESS:
                     TransProgressMsg m = (TransProgressMsg) msg.obj;
-                    if (isSender){
-                        dialog.setTitle("正在发送第"+m.getCurrentCount()+"个文件,共"+m.getTotalCount()+"个");
-
-                    }else {
-                        dialog.setTitle("正在接收第"+m.getCurrentCount()+"个文件,共"+m.getTotalCount()+"个");
-
+                    if (isSender) {
+                        dialog.setTitle("正在发送第" + m.getCurrentCount() + "个文件,共" + m.getTotalCount() + "个");
+                    } else {
+                        dialog.setTitle("正在接收第" + m.getCurrentCount() + "个文件,共" + m.getTotalCount() + "个");
                     }
-                    dialog.setMessage("已完成"+m.getProgress()+"%");
+                    dialog.setMessage("已完成" + m.getProgress() + "%");
                     dialog.setProgress(m.getProgress());
+                    Log.e("progress",m.getProgress()+"");
                     break;
             }
         }
@@ -373,12 +372,13 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
         mManager.connect(mChannel, config, new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
-                AlertUtil.toastMess(AcceptActivity.this, "连接成功");
+
+//                AlertUtil.toastMess(AcceptActivity.this, "连接成功");
             }
 
             @Override
             public void onFailure(int reason) {
-                AlertUtil.toastMess(AcceptActivity.this, "连接成功" + reason);
+//                AlertUtil.toastMess(AcceptActivity.this, "连接成功" + reason);
             }
         });
     }
@@ -390,6 +390,7 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
     public static final int PROGRESS_DISMISS = 3;
     //传输进度
     public static final int PROGRESS_ON_PROGRESS = 4;
+
     @Override
     public void beforeAccessNet() {
         handler.sendEmptyMessage(2);
@@ -407,19 +408,23 @@ public class AcceptActivity extends Activity implements AsyNet.OnNetStateChanged
 
     @Override
     public void onProgress(Integer... progress) {
+
+        Log.d("onProgress","执行onProgress");
         TransProgressMsg transProgressMsg = new TransProgressMsg(progress);
-        Message m  = new Message();
-        m.what = 4;
+        Message m = new Message();
+        m.what = PROGRESS_ON_PROGRESS;
+        m.obj = transProgressMsg;
         handler.sendMessage(m);
 
     }
 
-    class TransProgressMsg{
-        TransProgressMsg(Integer...pro){
+    class TransProgressMsg {
+        TransProgressMsg(Integer... pro) {
             currentCount = pro[1];
             totalCount = pro[2];
             progress = pro[0];
         }
+
         int currentCount;
         int totalCount;
         int progress;

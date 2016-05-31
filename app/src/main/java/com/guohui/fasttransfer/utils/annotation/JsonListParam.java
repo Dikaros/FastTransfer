@@ -12,7 +12,7 @@ public @interface JsonListParam {
 
     Class contentClassName();
 
-    JsonListParam.TYPE classType() default JsonListParam.TYPE.LIST;
+    TYPE classType() default TYPE.LIST;
 
     public static enum TYPE {
         ARRAY,

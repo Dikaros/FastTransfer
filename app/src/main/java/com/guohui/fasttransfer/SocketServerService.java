@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Binder;
 import android.os.IBinder;
+import android.util.Log;
 
 
 import com.guohui.fasttransfer.base.FileMessageList;
@@ -36,7 +37,7 @@ public class SocketServerService extends Service {
     public void onCreate() {
         super.onCreate();
         serverThread = null;
-
+        Log.e("service","service已启动");
         serverThread = new Thread() {
 
             @Override
@@ -52,6 +53,8 @@ public class SocketServerService extends Service {
                 try {
                     serverSocket = new ServerSocket(8889);
                     serverSocket.setReuseAddress(true);
+                    Log.e("service","服务器已启动在"+8889);
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -62,6 +65,7 @@ public class SocketServerService extends Service {
                         //callback when comes a connection
                         if (manager.getOnClientConnectedListener() != null) {
                             manager.getOnClientConnectedListener().OnClientConnected(currentClientSocket);
+                            Log.e("socketServer","收到了一个Socket请求");
 
                         }
 

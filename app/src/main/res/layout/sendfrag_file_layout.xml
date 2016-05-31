@@ -56,9 +56,11 @@
                     android:text="0GB/0GB"/>
             </LinearLayout>
             <ProgressBar
+                android:id="@+id/sdrongliang_progressbar"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
+                android:layout_marginRight="10dp"
                 android:layout_weight="1"/>
         </LinearLayout>
     </LinearLayout>

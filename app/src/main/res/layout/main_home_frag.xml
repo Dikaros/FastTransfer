@@ -38,7 +38,7 @@
                     android:textSize="20sp"
                     android:textColor="@android:color/white"
                     android:layout_weight="1"
-                    android:text="44张"/>
+                     />
             </LinearLayout>
 
 
@@ -47,16 +47,16 @@
                 android:layout_weight="1"
                 android:orientation="vertical"
                 android:layout_marginTop="10dp"
-                android:padding="5dp"
                 android:layout_height="match_parent">
                 <ImageButton
                     android:layout_width="match_parent"
                     android:padding="10dp"
                     android:scaleType="fitCenter"
+                    android:layout_marginBottom="15dp"
                     android:layout_height="0dp"
                     android:layout_weight="1"
                     android:background="#00000000"
-                    android:src="@drawable/main_home_friends"
+                    android:src="@drawable/main_home_videos"
                     />
                 <TextView
                     android:paddingBottom="10dp"
@@ -66,7 +66,7 @@
                     android:textSize="20sp"
                     android:textColor="@android:color/white"
                     android:layout_weight="1"
-                    android:text="138个"/>
+                    />
             </LinearLayout>
 
             <LinearLayout
@@ -91,7 +91,7 @@
                     android:textSize="20sp"
                     android:textColor="@android:color/white"
                     android:layout_weight="1"
-                    android:text="38首"/>
+                    />
             </LinearLayout>
         </LinearLayout>
 

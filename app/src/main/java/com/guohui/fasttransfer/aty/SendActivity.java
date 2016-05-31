@@ -226,7 +226,9 @@ public class SendActivity extends FragmentActivity implements HorizontalScrollCu
             }
             fileFrag.sendAtyFileFragRvAdapter.notifyDataSetChanged();
             fileFrag.tvPath.setText(fileFrag.currnetPath);
-            fileFrag.filelv.smoothScrollToPosition(fileFrag.lastPostion.pop());
+//            fileFrag.filelv.smoothScrollToPosition(fileFrag.lastPostion.pop());
+            fileFrag.filelv.setSelection(fileFrag.lastPostion.pop());
+
         } else {
             //当前时间
 //            long currentTime = System.currentTimeMillis();
