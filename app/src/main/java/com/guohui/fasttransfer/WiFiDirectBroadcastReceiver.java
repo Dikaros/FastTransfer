@@ -11,6 +11,7 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.view.View;
 import android.widget.AbsListView;
 import android.widget.ArrayAdapter;
+import android.widget.TextView;
 
 import com.guohui.fasttransfer.aty.AcceptActivity;
 import com.guohui.fasttransfer.aty.MainActivity;
@@ -52,6 +53,12 @@ public class WiFiDirectBroadcastReceiver extends BroadcastReceiver {
                 }
                 mActivity.devices.add(p2pDevice);
                 mActivity.diviceNear[i].setVisibility(View.VISIBLE);
+                for (int j=0;i<mActivity.diviceNear[i].getChildCount();j++){
+                    View v = mActivity.diviceNear[i].getChildAt(j);
+                    if (v instanceof TextView){
+                        ((TextView) v).setText(p2pDevice.deviceName);
+                    }
+                }
                 i++;
 
             }
